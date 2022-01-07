@@ -224,6 +224,11 @@ Consul is on http://$MY_PUBLIC_IP:8500
 Grafana is on http://$MY_PUBLIC_IP:3000
 "> installed
 
+# Clone the Terraform repo
+sudo git clone https://github.com/NirGrossman1986/scrpt
+bash /scrpt/script1.sh
+sleep 90
+
 clear;
 
 echo '
@@ -238,10 +243,6 @@ echo TF_VAR_AWS_ACCESS_KEY_ID=$TF_VAR_AWS_ACCESS_KEY_ID | sudo tee -a /etc/envir
 echo TF_VAR_AWS_SECRET_ACCESS_KEY=$TF_VAR_AWS_SECRET_ACCESS_KEY | sudo tee -a /etc/environment  '
 
 
-# Clone the Terraform repo
-sudo git clone https://github.com/NirGrossman1986/scrpt.git
-bash /scrpt/script1.sh
-sleep 90
 
 
 
