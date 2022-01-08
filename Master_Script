@@ -225,10 +225,10 @@ Grafana is on http://$MY_PUBLIC_IP:3000
 "> installed
 
 # Clone the Terraform repo
-sudo git clone https://github.com/NirGrossman1986/scrpt
-sleep 45
-bash /scrpt/script1.sh
-sleep 90
+sudo git clone https://github.com/NirGrossman1986/scrpt /home/scrpt/
+sleep 300
+bash /home/scrpt/script1.sh
+
 
 clear;
 
