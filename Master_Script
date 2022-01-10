@@ -4,7 +4,6 @@
 # Update and Upgrade the system
 sudo apt update < "/dev/null"
 sudo apt -y upgrade < "/dev/null"
-sleep 60
 
 # Install Git, unzip, tree, AWScli, Java11, MySQL client
 sudo apt install git=1:2.25.1-1ubuntu3 -y
@@ -229,6 +228,8 @@ Grafana is on http://$MY_PUBLIC_IP:3000
 "> installed
 
 # Clone the Terraform repo
+sudo apt update < "/dev/null"
+sudo apt -y upgrade < "/dev/null"
 sudo git clone https://github.com/NirGrossman1986/scrpt < "/dev/null"
 sudo bash /scrpt/script1.sh < "/dev/null"
 
