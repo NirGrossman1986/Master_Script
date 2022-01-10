@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Update and Upgrade the system
 sudo apt update < "/dev/null"
 sudo apt -y upgrade < "/dev/null"
