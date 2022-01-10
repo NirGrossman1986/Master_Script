@@ -123,12 +123,6 @@ sudo systemctl daemon-reload
 sudo systemctl enable consul.service  
 sudo systemctl start consul --no-pager
 sudo systemctl status consul --no-pager
-
-sudo systemctl daemon-reload --no-pager
-# Configure the servers to start at boot
-sudo systemctl enable grafana-server.service  
-sudo systemctl start grafana-server --no-pager
-sudo systemctl status grafana-server --no-pager
  
 # Set AWS cli creds  
 echo AWS_ACCESS_KEY_ID= | sudo tee -a /etc/environment 
@@ -239,8 +233,4 @@ echo TF_VAR_AWS_SECRET_ACCESS_KEY=$TF_VAR_AWS_SECRET_ACCESS_KEY | sudo tee -a /e
 export REGION=eu-west-3 
 export TF_VAR_REGION=eu-west-3 
 echo REGION=eu-west-3 | sudo tee -a /etc/environment
-echo TF_VAR_REGION=eu-west-3 | sudo tee -a /etc/environment
-
-
-
-'
+echo TF_VAR_REGION=eu-west-3 | sudo tee -a /etc/environment   '
