@@ -143,7 +143,10 @@ sudo systemctl status grafana-server --no-pager
 # Set AWS cli creds  
 echo AWS_ACCESS_KEY_ID= | sudo tee -a /etc/environment 
 echo AWS_SECRET_ACCESS_KEY= | sudo tee -a /etc/environment  
-echo REGION=eu-west-3 | sudo tee -a /etc/environment 
+echo REGION=eu-west-3 | sudo tee -a /etc/environment
+echo TF_VAR_VAULT_AWS_ACCESS_KEY_ID= | sudo tee -a /etc/environment 
+echo TF_VAR_VAULT_AWS_SECRET_ACCESS_KEY= | sudo tee -a /etc/environment  
+echo TF_VAR_VAULT_REGION=eu-west-3 | sudo tee -a /etc/environment
 
 # Set jenkins password fo easier access   
 export "JENKINS_PASS=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)"
@@ -226,10 +229,8 @@ Grafana is on http://$MY_PUBLIC_IP:3000
 "> installed
 
 # Clone the Terraform repo
-sudo git clone https://github.com/NirGrossman1986/scrpt 
-sleep 30
-sudo bash /scrpt/script1.sh
-
+git clone https://github.com/NirGrossman1986/scrpt ~/ 
+bash ~/scrpt/script1.sh
 
 clear;
 
