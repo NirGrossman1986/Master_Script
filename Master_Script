@@ -229,8 +229,8 @@ Grafana is on http://$MY_PUBLIC_IP:3000
 # Clone the Terraform repo
 sudo apt update < "/dev/null"
 sudo apt -y upgrade < "/dev/null"
-sudo git clone https://github.com/NirGrossman1986/scrpt < "/dev/null"
-sudo bash /scrpt/script1.sh < "/dev/null"
+git clone https://github.com/NirGrossman1986/scrpt < "/dev/null"
+bash /scrpt/script1.sh < "/dev/null"
 
 clear;
 
