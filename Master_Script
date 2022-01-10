@@ -142,9 +142,9 @@ sudo systemctl status grafana-server --no-pager
 echo AWS_ACCESS_KEY_ID= | sudo tee -a /etc/environment 
 echo AWS_SECRET_ACCESS_KEY= | sudo tee -a /etc/environment  
 echo REGION=eu-west-3 | sudo tee -a /etc/environment
-echo TF_VAR_VAULT_AWS_ACCESS_KEY_ID= | sudo tee -a /etc/environment 
-echo TF_VAR_VAULT_AWS_SECRET_ACCESS_KEY= | sudo tee -a /etc/environment  
-echo TF_VAR_VAULT_REGION=eu-west-3 | sudo tee -a /etc/environment
+echo TF_VAR_AWS_ACCESS_KEY_ID= | sudo tee -a /etc/environment 
+echo TF_VAR_AWS_SECRET_ACCESS_KEY= | sudo tee -a /etc/environment  
+echo TF_VAR_REGION=eu-west-3 | sudo tee -a /etc/environment
 
 # Set jenkins password fo easier access   
 export "JENKINS_PASS=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)"
