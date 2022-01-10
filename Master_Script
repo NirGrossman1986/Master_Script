@@ -124,14 +124,6 @@ sudo systemctl enable consul.service
 sudo systemctl start consul --no-pager
 sudo systemctl status consul --no-pager
 
-# Grafana the latest OSS edition
-sudo apt install -y apt-transport-https < "/dev/null"
-sudo apt install -y software-properties-common wget < "/dev/null"
-wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
-echo "deb https://packages.grafana.com/oss/deb stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
-sudo apt update
-sudo apt install grafana < "/dev/null"
-
 sudo systemctl daemon-reload --no-pager
 # Configure the servers to start at boot
 sudo systemctl enable grafana-server.service  
@@ -218,12 +210,12 @@ jenkins  $(java -jar /usr/share/jenkins/jenkins.war --version)
 $(terraform --version | head -n 1)
 $(vault -v)
 $(consul -v | head -n 1)
-Grafana $(grafana-server -v)
+
 \n### Links ###\n
 Jenkines is on http://$MY_PUBLIC_IP:8080
 Vault is on http://$MY_PUBLIC_IP:8200
 Consul is on http://$MY_PUBLIC_IP:8500
-Grafana is on http://$MY_PUBLIC_IP:3000
+
 "> installed
 
 # Clone the Terraform repo
