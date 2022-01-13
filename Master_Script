@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # Update and Upgrade the system
 sudo apt update < "/dev/null"
 sudo apt -y upgrade < "/dev/null"
@@ -12,6 +13,20 @@ sudo apt -y install awscli=1.18.69-1ubuntu0.20.04.1
 sudo apt install openjdk-11-jdk=11* -y < "/dev/null"
 sudo apt install mysql-client-core-8.0 
 
+# Set AWS cli creds  
+echo AWS_ACCESS_KEY_ID= | sudo tee -a /etc/environment 
+echo AWS_SECRET_ACCESS_KEY= | sudo tee -a /etc/environment  
+echo REGION=eu-west-3 | sudo tee -a /etc/environment
+echo TF_VAR_AWS_ACCESS_KEY_ID= | sudo tee -a /etc/environment 
+echo TF_VAR_AWS_SECRET_ACCESS_KEY= | sudo tee -a /etc/environment  
+echo TF_VAR_REGION=eu-west-3 | sudo tee -a /etc/environment
+
+export MY_PUBLIC_IP=$(curl ifconfig.me)
+echo "MY_PUBLIC_IP=$MY_PUBLIC_IP" | sudo tee -a /etc/environment
+
+export MY_PRIVATE_IP=$(hostname -I | awk '{print $1}')
+echo "MY_PRIVATE_IP=$MY_PRIVATE_IP" | sudo tee -a /etc/environment
+
 # Jenkines Long Term Support:
 wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
 sudo sh -c 'echo deb https://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
@@ -22,6 +37,14 @@ sudo apt install jenkins=2.303.3 -y < "/dev/null"
 sudo systemctl enable jenkins.service  
 sudo systemctl start jenkins --no-pager
 sudo systemctl status jenkins --no-pager
+ 
+# Set jenkins password fo easier access   
+export "JENKINS_PASS=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)"
+echo "JENKINS_PASS=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)" | sudo tee -a /etc/environment
+
+# save the jenkins password for the purpose of backup
+sudo sh -c "echo 'JENKINS_PASS=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)' >> /var/lib/jenkins/pass"
+
 
 # Hashicorp Terraform:
 wget https://releases.hashicorp.com/terraform/1.0.9/terraform_1.0.9_linux_amd64.zip
@@ -44,6 +67,7 @@ storage "consul" {
   address = "0.0.0.0:8500"
   path = "vault/"
 }
+
 listener "tcp" {
   address = "0.0.0.0:8200"
   tls_disable = 1
@@ -71,6 +95,10 @@ sudo systemctl enable vault.service
 sudo systemctl start vault --no-pager
 sudo systemctl status vault --no-pager
 
+# Vault ENV variables, set VAULT_ADDR for vault init 
+export VAULT_ADDR='http://127.0.0.1:8200'
+echo "VAULT_ADDR=$VAULT_ADDR" | sudo tee -a /etc/environment
+
 
 # Hashicorp Consul: 
 wget https://releases.hashicorp.com/consul/1.10.3/consul_1.10.3_linux_amd64.zip
@@ -80,24 +108,20 @@ sudo mv consul /usr/bin/
  
 sudo mkdir /etc/consul.d
 
-echo '{
-  "server": true,
-  "bootstrap": true,
-  "node_name": "Master node",
-  "bind_addr": "0.0.0.0",
-  "data_dir": "/tmp/consul",
-  "datacenter": "my_dc",
-  "log_level": "INFO",
-  "addresses" : {
-    "http": "0.0.0.0"
-  },
-  "ui_config": {
-    "enabled": true
-  },
-  "enable_syslog": true,
-  "leave_on_terminate": true,
-  "log_file": "/home/logs/consul.log"
-}' | sudo tee /etc/consul.d/consul.hcl
+echo "
+data_dir = \"/home/consul\"
+client_addr = \"0.0.0.0\"
+ui_config{
+  enabled = true
+}
+server = true
+node_name = \"Master node\" 
+datacenter = \"my_dc\"
+bind_addr = \"0.0.0.0\"
+advertise_addr = \"$MY_PUBLIC_IP\" # public server ip
+bootstrap_expect=1
+log_file = \"/home/logs/consul.log\"
+log_rotate_max_files = 1" | sudo tee /etc/consul.d/consul.hcl
 
 # create a service file and move to /usr/bin/
 sudo echo '[Unit]
@@ -123,32 +147,21 @@ sudo systemctl daemon-reload
 sudo systemctl enable consul.service  
 sudo systemctl start consul --no-pager
 sudo systemctl status consul --no-pager
+
+# Grafana the latest OSS edition
+sudo apt install -y apt-transport-https < "/dev/null"
+sudo apt install -y software-properties-common wget < "/dev/null"
+wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+echo "deb https://packages.grafana.com/oss/deb stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
+sudo apt update
+sudo apt install grafana < "/dev/null"
+
+sudo systemctl daemon-reload --no-pager
+# Configure the servers to start at boot
+sudo systemctl enable grafana-server.service  
+sudo systemctl start grafana-server --no-pager
+sudo systemctl status grafana-server --no-pager
  
-# Set AWS cli creds  
-echo AWS_ACCESS_KEY_ID= | sudo tee -a /etc/environment 
-echo AWS_SECRET_ACCESS_KEY= | sudo tee -a /etc/environment  
-echo REGION=eu-west-3 | sudo tee -a /etc/environment
-echo TF_VAR_AWS_ACCESS_KEY_ID= | sudo tee -a /etc/environment 
-echo TF_VAR_AWS_SECRET_ACCESS_KEY= | sudo tee -a /etc/environment  
-echo TF_VAR_REGION=eu-west-3 | sudo tee -a /etc/environment
-
-# Set jenkins password fo easier access   
-export "JENKINS_PASS=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)"
-echo "JENKINS_PASS=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)" | sudo tee -a /etc/environment
-
-# save the jenkins password for other purpose (backup)
-sudo sh -c "echo 'JENKINS_PASS=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)' >> /var/lib/jenkins/pass"
-
-export MY_PUBLIC_IP=$(curl ifconfig.me)
-echo "MY_PUBLIC_IP=$MY_PUBLIC_IP" | sudo tee -a /etc/environment
-
-export MY_PRIVATE_IP=$(hostname -I | awk '{print $1}')
-echo "MY_PRIVATE_IP=$MY_PRIVATE_IP" | sudo tee -a /etc/environment
-
-# Vault ENV variables
-# Set VAULT_ADDR for vault init 
-export VAULT_ADDR='http://127.0.0.1:8200'
-echo "VAULT_ADDR=$VAULT_ADDR" | sudo tee -a /etc/environment
 
 ## Save the vault unseal keys and token, these are only generated *once* 
 ## and should be saved and moved to a safe place
@@ -157,6 +170,7 @@ echo -en "### Tokens and Keys ###\n
 JENKINS_PASS=$JENKINS_PASS\n
 $(vault operator init)
 "> Tokens 
+
 
 export VAULT_TOKEN=$(grep 'Initial Root Token:' Tokens | awk '{print $NF}')
 echo VAULT_TOKEN=$VAULT_TOKEN | sudo tee -a /etc/environment  
@@ -204,24 +218,21 @@ jenkins  $(java -jar /usr/share/jenkins/jenkins.war --version)
 $(terraform --version | head -n 1)
 $(vault -v)
 $(consul -v | head -n 1)
-
+Grafana $(grafana-server -v)
 \n### Links ###\n
 Jenkines is on http://$MY_PUBLIC_IP:8080
 Vault is on http://$MY_PUBLIC_IP:8200
 Consul is on http://$MY_PUBLIC_IP:8500
-
+Grafana is on http://$MY_PUBLIC_IP:3000
 "> installed
 
 # Clone the Terraform repo
-sudo apt update < "/dev/null"
-sudo apt -y upgrade < "/dev/null"
-sudo git clone https://github.com/NirGrossman1986/scrpt < "/dev/null"
-
+git clone https://github.com/isaacTadela/Full-Deployment-pipeline.git
 
 clear;
 
 echo '
-# Add your AWS credentials as environment variables for all users and Terraform
+# Add your AWS credentials as environment variables for all users and Terraform environment variables
 export AWS_ACCESS_KEY_ID=
 export AWS_SECRET_ACCESS_KEY=
 echo AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID | sudo tee -a /etc/environment  
@@ -229,8 +240,5 @@ echo AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY | sudo tee -a /etc/environment
 export TF_VAR_AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
 export TF_VAR_AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 echo TF_VAR_AWS_ACCESS_KEY_ID=$TF_VAR_AWS_ACCESS_KEY_ID | sudo tee -a /etc/environment  
-echo TF_VAR_AWS_SECRET_ACCESS_KEY=$TF_VAR_AWS_SECRET_ACCESS_KEY | sudo tee -a /etc/environment  
-export REGION=eu-west-3 
-export TF_VAR_REGION=eu-west-3 
-echo REGION=eu-west-3 | sudo tee -a /etc/environment
-echo TF_VAR_REGION=eu-west-3 | sudo tee -a /etc/environment   '
+echo TF_VAR_AWS_SECRET_ACCESS_KEY=$TF_VAR_AWS_SECRET_ACCESS_KEY | sudo tee -a /etc/environment  '
+
